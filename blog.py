@@ -13,14 +13,22 @@ template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape = True)
 
+
 class User(db.Model):
     email = db.StringProperty(required=True)
     username = db.StringProperty()
     register_time = db.DateTimeProperty(auto_now_add=True)
     password = db.StringProperty(required=True)
     items_holds = db.ListProperty(db.Key)
-    items_wanted = db.ListProperty(db.Key)
+    items_wanted = db.ListProperty(db.Key) 
     
+class Items(db.Model):
+    category = db.StringProperty(required=True)
+    name = db.StringProperty(required=True)
+    expire_date = db.DateProperty()
+    item_holder = db.ReferenceProperty(User)
+    item_wanter = db.ListProperty(db.Key)
+    msg = db.StringProperty()
 
 def render_str(template, **params):
     t = jinja_env.get_template(template)
@@ -33,6 +41,16 @@ class BaseHandler(webapp2.RequestHandler):
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
 
+class Main(BaseHandler):
+    def get(self):
+        user = self.request.cookies.get('username', None)
+        if not user:
+            self.redirect('signin')
+
+        params = dict(user = user)
+        self.render('index.html', **params)
+        
+        
 
 class Signin(BaseHandler):
     def get(self):
@@ -65,7 +83,9 @@ class Signin(BaseHandler):
         if have_error:
             self.render('signin-form.html', **params)
         else:
-            self.redirect('/welcome?username=' + (email.split('@'))[0])
+            self.response.headers.add_header('Set-Cookie', 'username=%s; expires=datetime.datetime.now() + datetime.timedelta(weeks=4)'% str((email.split('@'))[0]))
+            #self.redirect('/welcome?username=' + (email.split('@'))[0])
+            self.redirect('/')
 
 class Signup(BaseHandler):
     def get(self):
@@ -83,6 +103,7 @@ class Signup(BaseHandler):
         elif db.Query(User).filter('username =', username).count(1)==1:
             params['error_username'] = "User already exists."
             have_error = True
+
         
         if have_error:
             self.render('signup-form.html', **params)
@@ -111,5 +132,6 @@ class Welcome(BaseHandler):
 
 app = webapp2.WSGIApplication([('/signup', Signup),
                                ('/signin', Signin),
-                               ('/welcome', Welcome)],
+                               ('/welcome', Welcome),
+                               ('/', Main)],
                               debug=True)

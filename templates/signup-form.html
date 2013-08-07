@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>SignUp</title>
+    <style type="text/css">
+      .label {text-align: right}
+      .error {color: red}
+    </style>
+
+  </head>
+
+  <body>
+    <h2>Signup</h2>
+    <form method="post">
+      <table>
+        <tr>
+          <td class="label">
+            Email
+          </td>
+          <td>
+            <input type="text" name="username" value="{{username}}">
+          </td>
+	  <td>
+	    <select name="domain" value="{{domain}}">
+	      <option>@ezweb.ne.jp</option>
+	      <option>@softbank.ne.jp</option>
+	      <option>@gmail.com</option>
+	    </select>
+          <td class="error">
+            {{error_username}}
+          </td>
+        </tr>
+
+      </table>  
+      <INPUT type="submit">
+    </form>
+  </body>
+
+</html>
